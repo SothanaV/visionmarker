@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!--link rel="stylesheet" type="text/css" href="static/mystyle.css"-->
+  <link rel="stylesheet" href="static/bootstrap.min.css">
+  <script src="static/jquery.min.js"></script>
+  <script src="static/bootstrap.min.js"></script>
+  <script src="static/d3.min.js"></script>
+  <title>Vision</title>
+<head>
+<body>
+	<div id="overlay" ></div>
+	  <!-- Modal -->
+	<div class="modal fade" id="myModal" role="dialog">
+		<div class="modal-dialog">
+
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+  					<h4 class="modal-title col-xs-4">Modal Header</h4>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+				</div>
+
+        <div class="modal-body">
+          <div class="container-fluid bd-example-row">
+            <div class="row">
+              <p id="editDetail">
+              <div class="container col-xs-12">
+                <div class="col-xs-3"><input id="edbrand" type="text" class="form-control" placeholder="brand" autofocus ></div>
+                <div class="col-xs-3"><input id="edmodel" type="text" class="form-control" placeholder="model"></div>
+                <div class="col-xs-3"><input id="edcolor" type="text" class="form-control" placeholder="color"></div>
+                <div class="col-xs-3"><input id="ednn"    type="text" class="form-control" placeholder="nickname"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+			  <div class="modal-footer">
+          <button id="editRemove" type="button" class="btn btn-danger pull-left" >remove</button>
+				  <input id="editSave" type="submit" class="btn btn-success" data-dismiss="modal" onclick='save_detail()'>
+        </div>
+			</div>
+		</div>
+	</div>
+<script>
+var rmax, cmax, svg_w=960, svg_h=540;//cmax natural width of img whereas svg_w for svg width
+var url="dataset/_00.jpg";
+var label_color="#00FF00";
+var text_color="#FFFF00";
+var _labels=[
+      {"id":"rec0","x":290,"y":245,"width":650,"height":341, "brand":"b0","model": "m0", "color":"c0", "nn":"n0" },
+      {"id":"rec1","x":646,"y":82,"width":162,"height":134,  "brand":"b1","model": "m1", "color":"c1", "nn":"n1"},
+      {"id":"rec2","x":874,"y":37,"width":114,"height":72,   "brand":"b2","model": "m2", "color":"c2", "nn":"n2"},
+      {"id":"rec3","x":386,"y":164,"width":236,"height":200, "brand":"b3","model": "m3", "color":"c3", "nn":"n3"} ];
+var _k=_labels.length;
+var edit_id,_isdraw;
+var beta;//svgtoraw
+var alpha;//rawtosvg
+var rec_w, rec_h, rec_x, rec_y;
+var selected_rect_index=null;
+////////////////////process//////////////
+var svg = d3.select("div#overlay").append("svg")
+  .attr("width", svg_w)
+  .attr("height", svg_h);
+
+var mainimg = svg.append("svg:image")
+  .attr("xlink:href", "")
+  .attr("width", "100%")
+  .attr("height", "100%");      
+loadimage(mainimg,url);
+function loadimage(mainimg,url){
+  img = new Image();
+  img.onload = function(){
+        cmax=img.naturalWidth;
+        rmax=img.naturalHeight;
+        beta=cmax/svg_w;        
+        alpha=svg_w/cmax;
+        draw(_labels);
+  }
+  img.src = url;
+  mainimg.attr("xlink:href", img.src);
+};
+
+////////////////////////////////////removing rectangle
+d3.select("#editRemove")
+  .on("click",function() {
+      d3.select("#"+edit_id)
+        .transition().duration(500)
+        .attr("width", 0)
+        .attr("height", 0)
+        .remove();
+      d3.select("#t"+edit_id)
+        .text("")
+        .remove();
+
+  //
+  for (i=0; i<_labels.length; i++){
+    if (_labels[i].id==edit_id){
+      _labels.splice(i,1);
+    }
+  }
+  $('#myModal').modal('hide'); 
+});
+
+
+//////////////////////////////////creating a new rect
+mainimg.on("mousedown",function() {
+  console.log("mainimg mouse down");
+  _isdraw=1;
+  rec_x=d3.mouse(this)[0]*beta;
+  rec_y=d3.mouse(this)[1]*beta;
+  crect = svg.selectAll("rect.crect")
+          .data([{"x":rec_x, "y":rec_y, "width":0, "height":0}]);
+
+  crect.enter()
+    .append("rect")
+    .attr("class","crect")
+    .attr("x",function(d){return d.x*alpha})
+    .attr("y",function(d){return d.y*alpha})
+    .attr("width",function(d){return d.width*alpha})
+    .attr("height",function(d){return d.height*alpha})
+    .attr("fill","none")
+    .attr("stroke","#FF0000")
+    .attr("stroke-width", 3);
+});
+
+svg.on("svg mousemove", function() {
+  if(_isdraw==1){//here
+    console.log("mouse move");
+    xf=d3.mouse(this)[0]*beta;
+    yf=d3.mouse(this)[1]*beta;
+    _w=Math.abs(rec_x - xf );
+    _h=Math.abs(rec_y - yf );
+    _x=Math.min(rec_x, xf);
+    _y=Math.min(rec_y, yf);
+    crect = svg.selectAll("rect.crect")
+      .data([{"x":_x,"y":_y,"width":_w,"height":_h}])
+      .attr("x",function(d){return d.x*alpha})
+      .attr("y",function(d){return d.y*alpha})
+      .attr("width",function(d){return d.width*alpha})
+      .attr("height",function(d){return d.height*alpha})
+      .attr("fill","none")
+      .attr("stroke","#FF0000")
+      .attr("stroke-width", 3);
+  }  
+});
+
+svg.on("mouseup",function() {
+  console.log("svg mouse up");  
+  if(_isdraw==1 ){
+    crect = svg.selectAll("rect.crect")
+      .data([])
+      .exit().remove();
+    rect={}
+    xf=~~(d3.mouse(this)[0]*beta);
+    yf=~~(d3.mouse(this)[1]*beta);
+    rec_w=Math.abs(rec_x - xf );
+    rec_h=Math.abs(rec_y - yf );
+    rec_x=Math.min(rec_x, xf);
+    rec_y=Math.min(rec_y, yf);
+    rect["id"]= "rec"+_k;
+    rect["x"]=parseInt(rec_x);
+    rect["y"]=parseInt(rec_y);
+    rect["width"]=parseInt(rec_w);
+    rect["height"]=parseInt(rec_h); 
+    rect["brand"]="brand"+_k;
+    rect["model"]="model"+_k;
+    rect["color"]="color"+_k;
+    rect["nn"]="nn"+_k;    
+    console.log(JSON.stringify(rect));
+    if(rec_w>10 && rec_h>10){
+      _labels.push(rect);
+      edit_id=rect.id;
+      console.log("svg mouse up on "+ edit_id);
+      $('#editDetail').text( JSON.stringify( rect ) );
+      $('#edbrand').val("==")
+      $('#myModal').modal('show'); 
+      _k++;
+    }
+    _isdraw=0;
+    draw(_labels);
+    console.log( JSON.stringify(_labels) );
+  }  
+
+});
+
+
+function draw(data){
+  //var alpha=svg_w/cmax;
+  console.log(JSON.stringify(_labels));
+  var rects = svg.selectAll("rect")
+      .data(data);
+
+  rects
+    .transition().duration(100)
+    .attr("x",function(d){return d.x*alpha})
+    .attr("y",function(d){return d.y*alpha})
+    .attr("width",function(d){return d.width*alpha})
+    .attr("height",function(d){return d.height*alpha})
+    .attr("fill","none")
+    .attr("stroke",label_color)
+    .attr("stroke-width", 3)
+
+  rects.exit()
+    .transition().duration(1000)
+    .attr("width", 0)
+    .attr("height", 0)
+    .remove()
+
+  rects.enter()
+    .append("rect")
+    .on("click", function(d,i) {
+      edit_id=d.id;
+      console.log("rects.enter() click on "+ edit_id);
+      $('#editDetail').text( JSON.stringify( _labels[i] ) );
+      $('#myModal').modal('show'); 
+      
+      d3.event.stopPropagation();
+    })
+    .on("mouseover",function(d,i) {
+      d3.select(this)
+      .attr("stroke-width", 10)
+      .attr("stroke","#00FF00");
+
+      d3.event.stopPropagation();
+    })
+    .on("mouseleave",function(d,i) {
+      d3.select(this)
+      //.transition().duration(300)
+      .attr("stroke-width", 3)
+      .attr("stroke","#00FF00");
+      d3.event.stopPropagation();
+    })
+    .attr("id",function(d,i){return d.id})
+    .attr("x",function(d){return 0})
+    .attr("y",function(d){return 0})
+    .attr("width",function(d){return svg_w})
+    .attr("height",function(d){return svg_h})
+    .transition().duration(300)
+    .attr("x",function(d){return d.x*alpha})
+    .attr("y",function(d){return d.y*alpha})
+    .attr("width",function(d){return d.width*alpha})
+    .attr("height",function(d){return d.height*alpha})
+    .attr("fill","none")
+    .attr("stroke",label_color)
+    .attr("stroke-width", 3)
+
+    var texts = svg.selectAll("text")
+      .data(data);
+    texts
+      .attr("x", function(d) { return d.x*alpha; })
+      .attr("y", function(d) { return d.y*alpha-3; })
+      .attr("fill",text_color)
+      .text( function (d) { return d.brand+" "+d.model+" "+d.color+" "+d.nn; });
+    texts.enter()
+      .append("text")
+      .attr("id",function(d,i){return "t"+d.id})
+      .attr("x", function(d) { return d.x*alpha; })
+      .attr("y", function(d) { return d.y*alpha-3; })
+      .attr("fill",text_color)
+      .text( function (d) { return d.brand+" "+d.model+" "+d.color+" "+d.nn; });
+    texts.exit()
+      .text("")
+      .remove();
+}
+
+function save_detail(){
+  _labels[selected_rect_index].brand = $('#edbrand').val();
+  _labels[selected_rect_index].modal = $('#edmodel').val();
+  _labels[selected_rect_index].color = $('#edcolor').val();
+  _labels[selected_rect_index].nn = $('#ednn').val();
+}
+
+$('#myModal').on('shown.bs.modal', function () {
+    $('#edbrand').focus();
+    for (i=0; i<_labels.length; i++){
+      if (_labels[i].id==edit_id){
+        $('#edbrand').val(_labels[i]["brand"]);
+        $('#edmodel').val(_labels[i]["model"]);
+        $('#edcolor').val(_labels[i]["color"]);
+        $('#ednn').val(_labels[i]["nn"]);
+        selected_rect_index = i;
+      }
+    }
+});
+$('#myModal').bind('keypress', function(e) {
+  if(e.keyCode==13){
+    save_detail();
+    $('#myModal').modal('hide');
+  }
+
+});
+$('#editRemove').focus(function(){
+    
+    $('#editSave').focus();
+})
+
+$('#editSave').focus(function(){
+    $('#edbrand').focus();
+});
+
+</script>
+</body>
+</html>
