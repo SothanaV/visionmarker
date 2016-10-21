@@ -10,30 +10,27 @@
   <title>Vision</title>
 <head>
 <body>
-  <nav class="navbar navbar-default">
-    <div class="container-fluid">
-      <div class="navbar-header">
-        <a class="navbar-brand" href="#">WebSiteName</a>
+  
+	<div class="container-fluid">
+    <div class="row col-xs-12">
+      <div class="col-xs-2">
+        <div class="panel panel-default">
+          <div class="panel-heading">Control Panel</div>
+          <div class="panel-body">Panel Content</div>
+        </div>
       </div>
-      <ul class="nav navbar-nav">
-        <li class="active"><a href="#">workspace</a></li>
-        <li><a href="#">Page 1</a></li>
-        <li><a href="#">Page 2</a></li> 
-        <li><a href="#">Page 3</a></li> 
-      </ul>
-    </div>
-  </nav>
-	<div class="container-fluid bd-example-row">
-    <div class="panel panel-default col-xs-3">
-      <div class="panel-heading">Panel Heading</div>
-      <div class="panel-body">Panel Content</div>
-    </div>
 
-    <div class="panel panel-default col-xs-9">
-        <div class="panel-heading">Panel Heading</div>
-        <div class="panel-body"><div id="overlay" ></div></div>
-    </div>
+      <div class="col-xs-10">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <span>BatchID:</span>
+              <button type="button" class="btn btn-xs btn-success pull-right">submit</button>
+            </div>
+            <div class="panel-body"><div id="overlay" ></div></div>
+        </div>
+      </div>
 
+    </div>
 	</div>
     <!-- Modal -->
 	<div class="modal fade" id="myModal" role="dialog">
@@ -92,7 +89,7 @@
     .attr("height", svg_h+0.1*svg_h);
 
   var images=[
-    {"src":"dataset/_00.jpg", "labels":[]},
+    {"src":"dataset/_00.jpg", "labels":_labels},
     {"src":"dataset/_01.jpg", "labels":[]},
     {"src":"dataset/_02.jpg", "labels":[]},
     {"src":"dataset/_03.jpg", "labels":[]},
@@ -278,9 +275,10 @@
 
   function save_detail(){
     _labels[selected_rect_index].brand = $('#edbrand').val();
-    _labels[selected_rect_index].modal = $('#edmodel').val();
+    _labels[selected_rect_index].model = $('#edmodel').val();
     _labels[selected_rect_index].color = $('#edcolor').val();
     _labels[selected_rect_index].nn = $('#ednn').val();
+    draw(_labels); 
   }
 
   $('#myModal').on('shown.bs.modal', function () {
@@ -300,7 +298,6 @@
       save_detail();
       $('#myModal').modal('hide');
     }
-
   });
   $('#editRemove').focus(function(){
       
