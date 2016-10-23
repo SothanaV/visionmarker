@@ -2,16 +2,29 @@
 <!DOCTYPE html>
 <html>
 <head>
+  
   <meta charset="utf-8">
   <!--link rel="stylesheet" type="text/css" href="static/mystyle.css"-->
   <link rel="stylesheet" href="{% static 'bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'mytt.css' %}">
   <script src="{% static 'jquery.min.js' %} "></script>
+  <script src="{% static 'typeahead.bundle.min.js' %} "></script>
   <script src="{% static 'bootstrap.min.js' %} "></script>
   <script src="{% static 'd3.min.js' %} "></script>
+  
+  <!--script src="{% static 'myscript.js' %} "></script-->
   <title>Vision</title>
+  <style type="text/css">
+  textarea { font-size: 12px !important; }
+  input { font-size: 12px !important; }
+  div { font-size: 14px !important; }
+  </style>
 <head>
 <body>
-  
+
+
+
+
 	<div class="container-fluid">
     <div class="row col-xs-12">
       <div class="col-xs-2">
@@ -30,7 +43,7 @@
           </div>  
             
           <div class="panel-body">
-            chat here
+            {% include 'chat.html' %}
             
 
             <!-- end container-->
@@ -67,7 +80,7 @@
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
-  					<h4 class="modal-title col-xs-4">Modal Header</h4>
+  					<h4 class="modal-title col-xs-4">Detail</h4>
             <button type="button" class="close" data-dismiss="modal">&times;</button>
 				</div>
 
@@ -76,10 +89,22 @@
             <div class="row">
               <p id="editDetail">
               <div class="container col-xs-12">
-                <div class="col-xs-3"><input id="edbrand" type="text" class="form-control" placeholder="brand" autofocus ></div>
-                <div class="col-xs-3"><input id="edmodel" type="text" class="form-control" placeholder="model"></div>
-                <div class="col-xs-3"><input id="edcolor" type="text" class="form-control" placeholder="color"></div>
-                <div class="col-xs-3"><input id="ednn"    type="text" class="form-control" placeholder="nickname"></div>
+                
+                <div id="ddbrand" class="col-xs-3">
+                  <input id="edbrand" class="typeahead form-control" type="text" placeholder="brand" autofocus>
+                </div>
+
+                <div id="ddmodel" class="col-xs-3">
+                  <input id="edmodel" class="typeahead form-control" type="text" placeholder="model" autofocus>
+                </div>
+
+                <div id="ddcolor" class="col-xs-3">
+                  <input id="edcolor" class="typeahead form-control" type="text" placeholder="color" autofocus>
+                </div>
+
+                <div id="ddnn" class="col-xs-3">
+                  <input id="ednn" class="typeahead form-control" type="text" placeholder="nickname" autofocus>
+                </div>
               </div>
             </div>
           </div>
@@ -173,7 +198,47 @@ var images=[
   {"src":"static/dataset/_09.jpg", "labels":[]},];
 
   
+///////////////////typeahead
+//////////////////////typeahead
+var brands = new Bloodhound({
+  datumTokenizer: Bloodhound.tokenizers.whitespace,
+  queryTokenizer: Bloodhound.tokenizers.whitespace,
+  prefetch: "{% static 'typeahead/brands.json' %}"
+});
+$('#ddbrand .typeahead').typeahead(null, {
+  name: 'brands',
+  source: brands
+});
 
+var models = new Bloodhound({
+  datumTokenizer: Bloodhound.tokenizers.whitespace,
+  queryTokenizer: Bloodhound.tokenizers.whitespace,
+  prefetch: "{% static 'typeahead/models.json' %}"
+});
+$('#ddmodel .typeahead').typeahead(null, {
+  name: 'models',
+  source: models
+});
+
+var colors = new Bloodhound({
+  datumTokenizer: Bloodhound.tokenizers.whitespace,
+  queryTokenizer: Bloodhound.tokenizers.whitespace,
+  prefetch: "{% static 'typeahead/colors.json' %}"
+});
+$('#ddcolor .typeahead').typeahead(null, {
+  name: 'colors',
+  source: colors
+});
+
+var nicknames = new Bloodhound({
+  datumTokenizer: Bloodhound.tokenizers.whitespace,
+  queryTokenizer: Bloodhound.tokenizers.whitespace,
+  prefetch: "{% static 'typeahead/nicknames.json' %}"
+});
+$('#ddnn .typeahead').typeahead(null, {
+  name: 'nicknames',
+  source: nicknames
+});
 
 
 
@@ -279,13 +344,19 @@ var images=[
         $('#edbrand').focus();
         for (i=0; i<_labels.length; i++){
           if (_labels[i].id==edit_id){
-            $('#edbrand').val(_labels[i]["brand"]);
-            $('#edmodel').val(_labels[i]["model"]);
-            $('#edcolor').val(_labels[i]["color"]);
-            $('#ednn').val(_labels[i]["nn"]);
             selected_rect_index = i;
+
+            //$('#edbrand').val(_labels[i]["brand"]);
+            //$('#edmodel').val(_labels[i]["model"]);
+            //$('#edcolor').val(_labels[i]["color"]);
+            //$('#ednn').val(_labels[i]["nn"]);
+            
+            $('#ddbrand .typeahead').typeahead('val',_labels[i]["brand"]);
+            $('#ddmodel .typeahead').typeahead('val',_labels[i]["model"]);
+            $('#ddcolor .typeahead').typeahead('val',_labels[i]["color"]);
+            $('#ddnn .typeahead').typeahead('val',_labels[i]["nn"]);
           }
-        }
+        }        
     });
     $('#myModal').bind('keypress', function(e) {
       if(e.keyCode==13){
@@ -553,11 +624,14 @@ $( document ).ready(function() {
     console.log( "ready!" );
     bringi(0);
     draw(_labels);
+    getchat();
   });
 });
 $(window).load( function(){
   //get_labels();
 });
+
+
 </script>
 </body>
 </html>

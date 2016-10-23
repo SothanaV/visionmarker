@@ -22,5 +22,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^auth/', include('wl_auth.urls', namespace="wl_auth") ),
     url(r'^$', views.home, name='home'),
-    url(r'^batch/(?P<batch_id>[0-9]{1,})/$', views.batch, name='batch')
+    url(r'^batch/(?P<batch_id>[0-9]{1,})/$', views.batch, name='batch'),
+    url(r'^chat/(?P<batch_id>[0-9]{1,})/$', views.chat, name='chat'),
+    url(r'^typeahead/(?P<mode>[\w\-]+)/$', views.typeahead, name='typeahead'),
 ]

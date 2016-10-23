@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from app.models import Batch, Image, Label, MyUser
+from app.models import Batch, Image, Label, MyUser, Comment
 import app.models as md
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -112,3 +113,33 @@ def batch(request, batch_id):
 				print "batch: %s, status: %s"%(b, b.status)
 		return JsonResponse(images, safe=False)
 
+@login_required(login_url='wl_auth:signin')
+def chat(request, batch_id):
+	_log=""
+	if request.method=='POST':
+		if 'username' in request.session:
+			_username=request.session['username']
+			print "#debug view92:: username: %s"%_username
+			u=User.objects.get(username=_username)
+			mu=MyUser.objects.get(user=u)
+
+			_message = request.POST.get('message')
+			c=Comment(user=mu, message=_message, batch=Batch.objects.get(pk=batch_id))
+			c.save()
+
+	q=Comment.objects.filter(batch=Batch.objects.get(pk=batch_id)).order_by('created_time')
+	for i in q:
+		_log=_log+"%s: %s\n"%(i.user.user.username[:6], i.message)
+
+	return JsonResponse({"log":_log}, safe=False)
+
+@login_required(login_url='wl_auth:signin')
+def typeahead(request, mode):
+	if mode=="brands":
+		return JsonResponse(["Toyota","Honda","Hyundai","Nissan","Tata","T1","T2","T3","T4","X1"], safe=False)
+	if mode=="models":
+		return JsonResponse(["Vios","Camry","Altis"], safe=False)
+	if mode=="colors":
+		return JsonResponse(["White","Black","Red","Blue","Gold"], safe=False)
+	if mode=="nicknames":
+		return JsonResponse(["Toyota","honda",u"ปลาวาฬ"], safe=False)
