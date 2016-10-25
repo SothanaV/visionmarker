@@ -86,30 +86,37 @@ def batch(request, batch_id):
 				q.save()
 		if request.POST.get('rework'):
 			b=Batch.objects.get(pk=batch_id)
+			b.num_rework=b.num_rework+1
 			b.status=md.TAGGING
 			b.save()
 		else:
 			if request.POST.get('submission'):
-				if request.POST.get('submission')=='1':	#reviewer
+				if request.POST.get('submission')=='1' and 'username' in request.session:	#reviewer
+					u=User.objects.get(username=_username)
+					mu=MyUser.objects.get(user=u)					
 					b=Batch.objects.get(pk=batch_id)
+					b.reviewer=mu
 					b.status=md.DONE
 					b.save()
 					print "DONE:: batch: %s, status: %s, submission: %s"%(b, b.status, request.POST.get('submission'))
-				else:									#labeller
+				else:											#labeller
 					b=Batch.objects.get(pk=batch_id)
 					b.status=md.REVIEWING
 					b.save()
 					print "TO REVIEWER:: batch: %s, status: %s, submission: %s"%(b, b.status, request.POST.get('submission'))
-			elif 'username' in request.session:#debug view92
-				_username=request.session['username']
-				print "#debug view92:: username: %s"%_username
-				u=User.objects.get(username=_username)
-				mu=MyUser.objects.get(user=u)
-
+			else:
 				b=Batch.objects.get(pk=batch_id)
-				b.status=md.TAGGING
-				b.labeller=mu
-				b.save()
+				if 'username' in request.session:				#debug view92
+					_username=request.session['username']
+					print "#debug view92:: username: %s"%_username
+					if b.labeller:
+						print "#debug view92:: the batch being labelled"
+					else:										#labelling for the first time
+						u=User.objects.get(username=_username)
+						mu=MyUser.objects.get(user=u)				
+						b.status=md.TAGGING
+						b.labeller=mu
+						b.save()
 				print "batch: %s, status: %s"%(b, b.status)
 		return JsonResponse(images, safe=False)
 

@@ -25,6 +25,7 @@ class Batch(models.Model):
 	created_time = models.DateTimeField(auto_now_add=True)
 	updated_time = models.DateTimeField(auto_now=True)
 	status = models.CharField( max_length=1, choices=STATUS_CHOICES, default=TODO)
+	num_rework = models.PositiveSmallIntegerField(default=0)
 	def __unicode__(self):
 		if self.id:
 			return "BID%06d"%self.id

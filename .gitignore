@@ -87,3 +87,10 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Django
+*.pyc
+*.sqlite3
+migrations/
+.ipynb_checkpoints/
+
