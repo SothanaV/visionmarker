@@ -7,8 +7,8 @@ class MyUserAdmin(admin.ModelAdmin):
 	list_editable =('isreviewer',)
 
 class BatchAdmin(admin.ModelAdmin):
-	list_display=('id','reviewer', 'labeller','created_time',
-		'updated_time', 'status')
+	list_display=('id','status','reviewer', 'labeller','num_rework','created_time',
+		'updated_time')
 	list_filter=('status',)
 	list_editable =('labeller',)
 	

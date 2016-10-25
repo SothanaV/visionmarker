@@ -7,6 +7,7 @@ from app.models import Batch, Image, Label, MyUser, Comment
 import app.models as md
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.shortcuts import redirect
 
 @login_required(login_url='wl_auth:signin')
 def home(request):
@@ -16,22 +17,28 @@ def home(request):
 		print "username: %s"%_username
 		u=User.objects.get(username=_username)
 		mu=MyUser.objects.get(user=u)
-		if mu.isreviewer:
+		if mu.isreviewer:#reviwer
 			b=Batch.objects.filter(status=md.REVIEWING).first()
 			if b:
 				return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':1})
 			else:
 				return render(request,'home.html',{'batch_id':'','username':_username,'isreviewer':1} )
-		else:
+		else:#labeller									
 			b=Batch.objects.filter(status=md.TAGGING,labeller=mu).first()
-			if not b: #not found
-				b=Batch.objects.filter(status=md.TODO).first()				
-			if b:
-				b.labeller=mu
-				b.save()
+			if b: #found previous closed batch
 				return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':0})
-			else:
-				return render(request,'home.html',{'batch_id':'','username':_username,'isreviewer':0} )
+			else:#not found
+				b=Batch.objects.filter(status=md.TODO).first()				
+				if b:#found new batch in queue
+					b.labeller=mu
+					b.status=md.TAGGING
+					b.save()
+					return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':0})
+				else:
+					return render(request,'home.html',{'batch_id':'','username':_username,'isreviewer':0} )				
+				
+	else:
+		return redirect('wl_auth:signin')
 
 #@csrf_exempt
 @login_required(login_url='wl_auth:signin')
@@ -92,6 +99,7 @@ def batch(request, batch_id):
 		else:
 			if request.POST.get('submission'):
 				if request.POST.get('submission')=='1' and 'username' in request.session:	#reviewer
+					_username=request.session['username']
 					u=User.objects.get(username=_username)
 					mu=MyUser.objects.get(user=u)					
 					b=Batch.objects.get(pk=batch_id)
@@ -105,18 +113,18 @@ def batch(request, batch_id):
 					b.save()
 					print "TO REVIEWER:: batch: %s, status: %s, submission: %s"%(b, b.status, request.POST.get('submission'))
 			else:
-				b=Batch.objects.get(pk=batch_id)
-				if 'username' in request.session:				#debug view92
-					_username=request.session['username']
-					print "#debug view92:: username: %s"%_username
-					if b.labeller:
-						print "#debug view92:: the batch being labelled"
-					else:										#labelling for the first time
-						u=User.objects.get(username=_username)
-						mu=MyUser.objects.get(user=u)				
-						b.status=md.TAGGING
-						b.labeller=mu
-						b.save()
+#				b=Batch.objects.get(pk=batch_id)
+#				if 'username' in request.session:				#debug view92
+#					_username=request.session['username']
+#					print "#debug view92:: username: %s"%_username
+#					if b.labeller:
+#						print "#debug view92:: the batch being labelled"
+#					else:										#labelling for the first time
+#						u=User.objects.get(username=_username)
+#						mu=MyUser.objects.get(user=u)				
+#						b.status=md.TAGGING
+#						b.labeller=mu
+#						b.save()
 				print "batch: %s, status: %s"%(b, b.status)
 		return JsonResponse(images, safe=False)
 
