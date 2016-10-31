@@ -93,5 +93,5 @@ ENV/
 *.sqlite3
 migrations/
 .ipynb_checkpoints/
-dataset/
-raw/
+beta/static/dataset/
+beta/static/raw/
