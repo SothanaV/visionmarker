@@ -94,4 +94,4 @@ ENV/
 migrations/
 .ipynb_checkpoints/
 dataset/
-
+raw/
