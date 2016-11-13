@@ -20,22 +20,27 @@ def home(request):
 		if mu.isreviewer:#reviwer
 			b=Batch.objects.filter(status=md.REVIEWING).first()
 			if b:
-				return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':1})
+				return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':1,'total_labelled':0})
 			else:
-				return render(request,'home.html',{'batch_id':'','username':_username,'isreviewer':1} )
-		else:#labeller									
+				return render(request,'home.html',{'batch_id':'','username':_username,'isreviewer':1,'total_labelled':0} )
+		else:#labeller	
+			total_labelled=0
+			for b in Batch.objects.filter(labeller__user__username='mylabeller'):
+			    for i in b.image_set.all():
+			        if 0<len(i.label_set.all()):
+			            total_labelled=total_labelled+1						
 			b=Batch.objects.filter(status=md.TAGGING,labeller=mu).first()
 			if b: #found previous closed batch
-				return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':0})
+				return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':0,'total_labelled':total_labelled})
 			else:#not found
 				b=Batch.objects.filter(status=md.TODO).first()				
 				if b:#found new batch in queue
 					b.labeller=mu
 					b.status=md.TAGGING
 					b.save()
-					return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':0})
+					return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':0,'total_labelled':total_labelled})
 				else:
-					return render(request,'home.html',{'batch_id':'','username':_username,'isreviewer':0} )				
+					return render(request,'home.html',{'batch_id':'','username':_username,'isreviewer':0,'total_labelled':total_labelled} )				
 				
 	else:
 		return redirect('wl_auth:signin')

@@ -60,7 +60,7 @@
                 {%if isreviewer %}
                   <button id="myrework" type="button" class="btn btn-xs btn-danger col-xs-1">rework </button>
                 {% endif %}
-                <a class="col-xs-10 text-center">batch_id: {{batch_id}}</a>
+                <a class="col-xs-10 text-center"> Labelled {{total_labelled}} images. [batch_id: {{batch_id}}]</a>
                 <button id="mysubmit" type="button" class="btn btn-xs btn-success col-xs-1">next </button>
               {% else %}
                 <a class="col-xs-10 text-center">No task in the queue.</a>
