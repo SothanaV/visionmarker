@@ -9,7 +9,7 @@ class MyUserAdmin(admin.ModelAdmin):
 class BatchAdmin(admin.ModelAdmin):
 	list_display=('id','status','reviewer', 'labeller','num_rework','created_time',
 		'updated_time')
-	list_filter=('status',)
+	list_filter=('status','labeller','reviewer')
 	list_editable =('labeller',)
 	
 
