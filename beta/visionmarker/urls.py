@@ -25,4 +25,5 @@ urlpatterns = [
     url(r'^batch/(?P<batch_id>[0-9]{1,})/$', views.batch, name='batch'),
     url(r'^chat/(?P<batch_id>[0-9]{1,})/$', views.chat, name='chat'),
     url(r'^typeahead/(?P<mode>[\w\-]+)/$', views.typeahead, name='typeahead'),
+    url(r'^result/', views.result, name='result'),
 ]

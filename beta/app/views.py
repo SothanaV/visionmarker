@@ -8,7 +8,9 @@ import app.models as md
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.shortcuts import redirect
-
+from django.http import HttpResponse
+from django.db.models import Q
+from app.models import TODO, TAGGING, REVIEWING, DONE
 @login_required(login_url='wl_auth:signin')
 def home(request):
 	print "home"
@@ -163,3 +165,31 @@ def typeahead(request, mode):
 		return JsonResponse(["White","Black","Red","Blue","Gold"], safe=False)
 	if mode=="nicknames":
 		return JsonResponse(["Toyota","honda",u"ปลาวาฬ"], safe=False)
+
+def result(request):
+	msg=""
+	for u in MyUser.objects.all().order_by('user__username'):
+		msg=msg+"user: %s<br>"%u 
+		if u.isreviewer:
+			total_reviewed=0
+			for b in Batch.objects.filter(reviewer__user__username=u):
+				for i in b.image_set.all():
+					if 0<len(i.label_set.all()):
+						total_reviewed=total_reviewed+1
+			msg = msg + "--reviewed %s images"%total_reviewed
+		else:
+			total_labelled=0
+			for b in Batch.objects.filter(labeller__user__username=u):
+				for i in b.image_set.all():
+					if 0<len(i.label_set.all()):
+						total_labelled=total_labelled+1
+			msg =msg + "--labelled %s images"%total_labelled
+	    
+		####DONE####
+		done=0
+		for b in Batch.objects.filter(Q(status=DONE), Q(reviewer__user__username=u) | Q(labeller__user__username=u)):
+			for i in b.image_set.all():
+				if 0<len(i.label_set.all()):
+					done=done+1
+		msg = msg + ", done %s images<br>"%done
+	return HttpResponse(msg)
