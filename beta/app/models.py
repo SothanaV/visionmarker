@@ -20,8 +20,8 @@ class MyUser(models.Model):
 		return self.user.username
 
 class Batch(models.Model):
-	reviewer = models.ForeignKey( 'MyUser' ,related_name='reviewer', on_delete=models.CASCADE, null=True)
-	labeller = models.ForeignKey( 'MyUser' ,related_name='labeller', on_delete=models.CASCADE, null=True)
+	reviewer = models.ForeignKey( 'MyUser' ,related_name='reviewer_batch', on_delete=models.CASCADE, null=True)
+	labeller = models.ForeignKey( 'MyUser' ,related_name='labeller_batch', on_delete=models.CASCADE, null=True)
 	created_time = models.DateTimeField(auto_now_add=True)
 	updated_time = models.DateTimeField(auto_now=True)
 	status = models.CharField( max_length=1, choices=STATUS_CHOICES, default=TODO)
