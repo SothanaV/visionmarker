@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.shortcuts import redirect
 from django.http import HttpResponse
-from django.db.models import Q
+from django.db.models import Count, Q
 from app.models import TODO, TAGGING, REVIEWING, DONE
 @login_required(login_url='wl_auth:signin')
 def home(request):
@@ -26,11 +26,11 @@ def home(request):
 			else:
 				return render(request,'home.html',{'batch_id':'','username':_username,'isreviewer':1,'total_labelled':0} )
 		else:#labeller	
-			total_labelled=0
-			for b in Batch.objects.filter(labeller__user__username='mylabeller'):
-			    for i in b.image_set.all():
-			        if 0<len(i.label_set.all()):
-			            total_labelled=total_labelled+1						
+			total_labelled=Image.objects.annotate( label_count=Count('label', distinct=True) )\
+				.filter(
+					Q(label_count__gt=0) & 
+					Q(batch__labeller__user__username="labeller1")
+				).count()					
 			b=Batch.objects.filter(status=md.TAGGING,labeller=mu).first()
 			if b: #found previous closed batch
 				return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':0,'total_labelled':total_labelled})
@@ -167,29 +167,19 @@ def typeahead(request, mode):
 		return JsonResponse(["Toyota","honda",u"ปลาวาฬ"], safe=False)
 
 def result(request):
+	# list of total images labelled by all user
 	msg=""
 	for u in MyUser.objects.all().order_by('user__username'):
-		msg=msg+"user: %s<br>"%u 
-		if u.isreviewer:
-			total_reviewed=0
-			for b in Batch.objects.filter(reviewer__user__username=u):
-				for i in b.image_set.all():
-					if 0<len(i.label_set.all()):
-						total_reviewed=total_reviewed+1
-			msg = msg + "--reviewed %s images"%total_reviewed
-		else:
-			total_labelled=0
-			for b in Batch.objects.filter(labeller__user__username=u):
-				for i in b.image_set.all():
-					if 0<len(i.label_set.all()):
-						total_labelled=total_labelled+1
-			msg =msg + "--labelled %s images"%total_labelled
-	    
-		####DONE####
-		done=0
-		for b in Batch.objects.filter(Q(status=DONE), Q(reviewer__user__username=u) | Q(labeller__user__username=u)):
-			for i in b.image_set.all():
-				if 0<len(i.label_set.all()):
-					done=done+1
-		msg = msg + ", done %s images<br>"%done
-	return HttpResponse(msg)
+		n=Image.objects.annotate( label_count=Count('label', distinct=True) )\
+		.filter(
+		Q(label_count__gt=0) & 
+			Q(batch__labeller__user__username=u.user.username)
+		).count()
+
+		m=Image.objects.annotate( label_count=Count('label', distinct=True) )\
+		.filter(
+			Q(label_count__gt=0) & 
+			Q(batch__labeller__user__username=u.user.username)
+		).count()
+		msg+= "+%15s labelled: %5d, reviewed: %5d\n"%(u,n,m)
+	return HttpResponse(msg,content_type="text/plain")
