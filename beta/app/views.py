@@ -20,29 +20,36 @@ def home(request):
 		u=User.objects.get(username=_username)
 		mu=MyUser.objects.get(user=u)
 		if mu.isreviewer:#reviwer
+			total_reviewed=Image.objects.annotate( label_count=Count('label', distinct=True) )\
+				.filter(
+					Q(label_count__gt=0) & 
+					Q(batch__reviewer__user__username=request.user)
+				).count()
+			msg= "Reviewed %d img."%total_reviewed	
 			b=Batch.objects.filter(status=md.REVIEWING).first()
 			if b:
-				return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':1,'total_labelled':0})
+				return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':1,'msg':msg})
 			else:
-				return render(request,'home.html',{'batch_id':'','username':_username,'isreviewer':1,'total_labelled':0} )
+				return render(request,'home.html',{'batch_id':'','username':_username,'isreviewer':1,'msg':msg} )
 		else:#labeller	
 			total_labelled=Image.objects.annotate( label_count=Count('label', distinct=True) )\
 				.filter(
 					Q(label_count__gt=0) & 
-					Q(batch__labeller__user__username="labeller1")
-				).count()					
+					Q(batch__labeller__user__username=request.user)
+				).count()
+			msg= "Labelled %d img."%total_labelled					
 			b=Batch.objects.filter(status=md.TAGGING,labeller=mu).first()
 			if b: #found previous closed batch
-				return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':0,'total_labelled':total_labelled})
+				return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':0,'msg':msg})
 			else:#not found
 				b=Batch.objects.filter(status=md.TODO).first()				
 				if b:#found new batch in queue
 					b.labeller=mu
 					b.status=md.TAGGING
 					b.save()
-					return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':0,'total_labelled':total_labelled})
+					return render(request,'home.html',{'batch_id':b.id,'username':_username,'isreviewer':0,'msg':msg})
 				else:
-					return render(request,'home.html',{'batch_id':'','username':_username,'isreviewer':0,'total_labelled':total_labelled} )				
+					return render(request,'home.html',{'batch_id':'','username':_username,'isreviewer':0,'msg':msg} )				
 				
 	else:
 		return redirect('wl_auth:signin')
