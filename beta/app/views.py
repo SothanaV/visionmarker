@@ -186,7 +186,7 @@ def result(request):
 		m=Image.objects.annotate( label_count=Count('label', distinct=True) )\
 		.filter(
 			Q(label_count__gt=0) & 
-			Q(batch__labeller__user__username=u.user.username)
+			Q(batch__reviewer__user__username=u.user.username)
 		).count()
 		msg+= "+%15s labelled: %5d, reviewed: %5d\n"%(u,n,m)
 	return HttpResponse(msg,content_type="text/plain")
