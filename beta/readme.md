@@ -13,7 +13,7 @@ python manage.py createsuperuser
 
 ## Dataset Preparation
   1. create MyUser in the Django Admin
-  2. copy all images into /raw and then start Jupyter using notebook.bat, the import script is the main project directory (load_dataset.ipynb).
+  2. copy all images into /static/raw and then start Jupyter using notebook.bat, the import script is the main project directory (load_dataset.ipynb).
 
 ## Run Server
 ```
