@@ -1,5 +1,5 @@
 # train from 0
-./darknet detector train yolo/annotate/obj.data yolo/yolo-obj-train.cfg -gpus 0,1
+./darknet detector train yolo/annotate/obj.data cfg/yolov3.cfg -gpus 0,1
 
 
 # train from check point
@@ -7,6 +7,8 @@
 
 
 ./darknet detector demo yolo/annotate/obj.data yolo/yolo-obj-test.cfg backup/yolo-obj-train.backup test/1.avi
+
+./darknet detect yolo/annotate/obj.data yolo/yolo-obj-test.cfg backup/yolo-obj-train.backup yolo/annotate/obj/999.png
 
 watch -n 1 nvidia-smi
 watch -n 1 sensors
